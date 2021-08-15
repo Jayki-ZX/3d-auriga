@@ -11,6 +11,12 @@ npm start
 
 Para empezar el repo segui este video [video](https://www.youtube.com/watch?v=z9qtGHTqLqQ)
 
+La aplicacion la saque de este ejemplo:
+
+* [cargar_modelos](https://threejs.org/examples/?q=obj#webgl_loader_obj_mtl)
+
+* [import_gltf](https://threejs.org/docs/#examples/en/loaders/GLTFLoader)
+
 El flujo de la app es el siguiente:
 
 `3dauriga.js -> index.html -> app.js -> localhost:3000`

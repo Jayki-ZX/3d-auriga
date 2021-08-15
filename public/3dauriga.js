@@ -160,7 +160,7 @@ function onClick() {
   raycaster.setFromCamera(mouse, camera);
 
   var intersects = raycaster.intersectObject(scene, true);
-  console.log(intersects);
+  //console.log(intersects);
   if (intersects.length > 0) {
 	
 		var object = intersects[0].object;
