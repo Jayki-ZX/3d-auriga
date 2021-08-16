@@ -1,5 +1,9 @@
 # Eolian 3D
 
+## IMPORTANTE
+
+Si estan usando el video guía, deje una rama de ese punto en la rama `rama-video`.
+
 ## Setup
 
 ```
