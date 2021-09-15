@@ -12,5 +12,8 @@
   "dependencies": {
     "express": "^4.17.1",
     "three": "^0.131.3"
+  },
+  "engines": {
+    "node": "14.17.6"
   }
 }
