@@ -6,8 +6,9 @@ import { DDSLoader } from './jsm/loaders/DDSLoader.js';
 import { MTLLoader } from './jsm/loaders/MTLLoader.js';
 import { OBJLoader } from './jsm/loaders/OBJLoader.js';
 import { GLTFLoader } from './jsm/loaders/GLTFLoader.js';
+import { OrbitControls } from './jsm/controls/OrbitControls.js';
 
-let camera, scene, renderer;
+let camera, scene, renderer, controls;
 
 let mouseX = 0, mouseY = 0;
 
@@ -61,6 +62,7 @@ function init() {
 
   const loader = new GLTFLoader();
 
+  /*
   loader.load( './ensamble/auriga/auriga.gltf', function ( gltf ) {
 
     console.log(gltf);
@@ -75,9 +77,8 @@ function init() {
 
     console.error( error );
 
-  } );
+  } );*/
 
-  /* FENIX
   loader.load( './ensamble/fenix/fenix.gltf', function ( gltf ) {
 
     console.log(gltf);
@@ -94,15 +95,15 @@ function init() {
 
   } );
 
-  */
-
   //
   renderer = new THREE.WebGLRenderer();
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize( window.innerWidth, window.innerHeight );
   container.appendChild( renderer.domElement );
 
-  document.addEventListener( 'mousemove', onDocumentMouseMove );
+  controls = new OrbitControls( camera, renderer.domElement ); 
+
+  //document.addEventListener( 'mousemove', onDocumentMouseMove );
 
   //
   window.addEventListener('mousemove', onClick, true);
@@ -140,15 +141,17 @@ function animate() {
 
 function render() {
 
-  camera.position.x += ( mouseX - camera.position.x ) * .05;
-  camera.position.y += ( - mouseY - camera.position.y ) * .05;
+  //camera.position.x += ( mouseX - camera.position.x ) * .05;
+  //camera.position.y += ( - mouseY - camera.position.y ) * .05;
 
-  camera.lookAt( scene.position );
+  //camera.lookAt( scene.position );
+  controls.update();
 
   renderer.render( scene, camera );
 
 }
 
+var last_intersected;
 function onClick() {
 
   event.preventDefault();
@@ -162,13 +165,23 @@ function onClick() {
   var intersects = raycaster.intersectObject(scene, true);
   //console.log(intersects);
   if (intersects.length > 0) {
-	
+    
 		var object = intersects[0].object;
 
-    object.material.color.set( Math.random() * 0xffffff );
-
+    //object.material.color.set( Math.random() * 0xffffff );
+    if(last_intersected) {
+      if(last_intersected.uuid != object.uuid) {
+        last_intersected.material.color.set( last_intersected.userData.originalColor );
+        object.userData.originalColor = object.material.color.getHex();
+        object.material.color.set( 0xffffff );
+      }
+    }
+    else {
+      object.userData.originalColor = object.material.color.getHex();
+      object.material.color.set( 0xffffff );
+    }
+    last_intersected = object;
   }
-	
 	render();
 
 }
