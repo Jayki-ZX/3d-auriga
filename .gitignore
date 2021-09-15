@@ -1,6 +1,5 @@
 node_modules/
-public/ensamble/*
-fenix
+auriga
 /node_modules
 npm-debug.log
 .DS_Store
