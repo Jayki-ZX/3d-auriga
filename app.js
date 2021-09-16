@@ -8,4 +8,8 @@ app.use('/jsm/', express.static(path.join(__dirname, 'node_modules/three/example
 app.use('/ensamble/', express.static(path.join(__dirname, 'public/ensamble')))
 app.use('/public/', express.static(path.join(__dirname, 'public')))
 
+app.get("/", function (req, res) {
+    res.send("<h1>Hello World!</h1>")
+  })
+
 app.listen(3000, () => console.log('Visit http://127.0.0.1:3000'))
