@@ -9,4 +9,5 @@ app.use('/ensamble/', express.static(path.join(__dirname, 'public/ensamble')))
 app.use('/public/', express.static(path.join(__dirname, 'public')))
 
 const port = process.env.PORT || 8080;
+console.log("Fenix 3D");
 app.listen(port, () => console.log('Visit http://127.0.0.1:',port))
