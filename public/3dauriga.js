@@ -7,20 +7,35 @@ import { MTLLoader } from './jsm/loaders/MTLLoader.js';
 import { OBJLoader } from './jsm/loaders/OBJLoader.js';
 import { GLTFLoader } from './jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from './jsm/controls/OrbitControls.js';
+import { EffectComposer } from './jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from './jsm/postprocessing/RenderPass.js';
+import { ShaderPass } from './jsm/postprocessing/ShaderPass.js';
+import { UnrealBloomPass } from './jsm/postprocessing/UnrealBloomPass.js';
 
+import { GUI } from './jsm/libs/dat.gui.module.js';
+
+const ENTIRE_SCENE = 0, BLOOM_SCENE = 1;
+const bloomLayer = new THREE.Layers();
+bloomLayer.set( BLOOM_SCENE );
 let camera, scene, renderer, controls;
+let renderScene, bloomPass;
+let finalPass, finalComposer, bloomComposer;
 
 let mouseX = 0, mouseY = 0;
 
 let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
 var raycaster;
+const materials = {};
 
+let darkMaterial;
 init();
 animate();
 
 
 function init() {
+  darkMaterial = new THREE.MeshBasicMaterial( { color: "black" } );
+  
   raycaster = new THREE.Raycaster();
   const container = document.createElement( 'div' );
   document.body.appendChild( container );
@@ -38,6 +53,13 @@ function init() {
   const pointLight = new THREE.PointLight( 0xffffff, 0.8 );
   camera.add( pointLight );
   scene.add( camera );
+
+  // bloom
+  renderScene = new RenderPass( scene, camera );
+  bloomPass = new UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85 );
+  bloomPass.threshold = 0;
+  bloomPass.strength = 1;
+  bloomPass.radius = 0;
 
   // model
 
@@ -106,6 +128,26 @@ function init() {
   //document.addEventListener( 'mousemove', onDocumentMouseMove );
 
   //
+  bloomComposer = new EffectComposer( renderer );
+  bloomComposer.renderToScreen = false;
+  bloomComposer.addPass( renderScene );
+  bloomComposer.addPass( bloomPass );
+  finalPass = new ShaderPass(
+    new THREE.ShaderMaterial( {
+      uniforms: {
+        baseTexture: { value: null },
+        bloomTexture: { value: bloomComposer.renderTarget2.texture }
+      },
+      vertexShader: document.getElementById( 'vertexshader' ).textContent,
+      fragmentShader: document.getElementById( 'fragmentshader' ).textContent,
+      defines: {}
+    } ), "baseTexture"
+  );
+  finalPass.needsSwap = true;
+  finalComposer = new EffectComposer( renderer );
+  finalComposer.addPass( renderScene );
+  finalComposer.addPass( finalPass );
+
   window.addEventListener('mousemove', onClick, true);
   window.addEventListener( 'resize', onWindowResize );
 
@@ -147,8 +189,11 @@ function render() {
   //camera.lookAt( scene.position );
   controls.update();
 
-  renderer.render( scene, camera );
-
+  //renderer.render( scene, camera );
+  scene.traverse( darkenNonBloomed );
+  bloomComposer.render();
+  scene.traverse( restoreMaterial );
+  finalComposer.render();
 }
 
 var last_intersected;
@@ -171,6 +216,9 @@ function onClick() {
     //object.material.color.set( Math.random() * 0xffffff );
     if(last_intersected) {
       if(last_intersected.uuid != object.uuid) {
+        object.layers.toggle( BLOOM_SCENE );
+        console.log("bloom");
+        last_intersected.layers.toggle( BLOOM_SCENE );
         last_intersected.material.color.set( last_intersected.userData.originalColor );
         object.userData.originalColor = object.material.color.getHex();
         object.material.color.set( 0xffffff );
@@ -179,9 +227,23 @@ function onClick() {
     else {
       object.userData.originalColor = object.material.color.getHex();
       object.material.color.set( 0xffffff );
+      object.layers.toggle( BLOOM_SCENE );
     }
     last_intersected = object;
   }
 	render();
 
+}
+
+function darkenNonBloomed( obj ) {
+	if ( obj.isMesh && bloomLayer.test( obj.layers ) === false ) {
+		materials[ obj.uuid ] = obj.material;
+		obj.material = darkMaterial;
+	}
+}
+function restoreMaterial( obj ) {
+	if ( materials[ obj.uuid ] ) {
+		obj.material = materials[ obj.uuid ];
+		delete materials[ obj.uuid ];
+	}
 }

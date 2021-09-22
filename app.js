@@ -8,5 +8,5 @@ app.use('/jsm/', express.static(path.join(__dirname, 'node_modules/three/example
 app.use('/ensamble/', express.static(path.join(__dirname, 'public/ensamble')))
 app.use('/public/', express.static(path.join(__dirname, 'public')))
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 3000;
 app.listen(port, () => console.log('Visit http://127.0.0.1:',port))
