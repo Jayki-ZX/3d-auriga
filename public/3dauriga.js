@@ -20,9 +20,8 @@ bloomLayer.set( BLOOM_SCENE );
 let camera, scene, renderer, controls;
 let renderScene, bloomPass;
 let finalPass, finalComposer, bloomComposer;
-
+let bg;
 let mouseX = 0, mouseY = 0;
-
 let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
 var raycaster;
@@ -46,6 +45,17 @@ function init() {
   // scene
 
   scene = new THREE.Scene();
+
+  bg = new THREE.CubeTextureLoader()
+	.setPath( './public/cube/' )
+	.load( [
+		'px.jpg',
+		'nx.jpg',
+		'py.jpg',
+		'ny.jpg',
+		'pz.jpg',
+		'nz.jpg'
+	] );
 
   const ambientLight = new THREE.AmbientLight( 0xcccccc, 0.4 );
   scene.add( ambientLight );
@@ -103,7 +113,7 @@ function init() {
 
   loader.load( './ensamble/fenix/fenix.gltf', function ( gltf ) {
 
-    console.log(gltf);
+    //console.log(gltf);
     gltf.scene.children.forEach(child => {
       child.scale.x = 60;
       child.scale.y = 60;
@@ -148,8 +158,9 @@ function init() {
   finalComposer.addPass( renderScene );
   finalComposer.addPass( finalPass );
 
-  window.addEventListener('mousemove', onClick, true);
+  window.addEventListener('pointermove', onClick, true);
   window.addEventListener( 'resize', onWindowResize );
+  window.addEventListener('dblclick', clickObject, true );
 
 }
 
@@ -189,14 +200,57 @@ function render() {
   //camera.lookAt( scene.position );
   controls.update();
 
+  scene.background = new THREE.Color(0x000000);
   //renderer.render( scene, camera );
   scene.traverse( darkenNonBloomed );
   bloomComposer.render();
+
+  scene.background = bg;
+
   scene.traverse( restoreMaterial );
   finalComposer.render();
 }
 
 var last_intersected;
+
+function clickObject() {
+  event.preventDefault();
+  const cb = document.getElementById("container");
+  let evt = new MouseEvent("mouseup", {});
+
+// Send the event to the checkbox element
+  cb.dispatchEvent(evt)
+  mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+  mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  let mouse = new THREE.Vector2(mouseX, mouseY) ;
+  raycaster.setFromCamera(mouse, camera);
+
+  var intersects = raycaster.intersectObject(scene, true);
+  //console.log(intersects);
+  if (intersects.length > 0) {
+    
+		var object = intersects[0].object;
+    //console.log("click objeto ", object.userData.name);
+    if(object.userData.name === "Solido1") {
+      window.open("https://www.google.com");
+    }
+    else if(object.userData.name === "Solido6") {
+      window.open("https://www.google.com");
+    }
+    else if(object.userData.name === "Solido7") {
+      window.open("https://www.google.com");
+    }
+    else if(object.userData.name === "Solido10") {
+      window.open("https://www.google.com");
+    }
+    else if(object.userData.name === "Solido11") {
+      window.open("https://www.google.com");
+    }
+  }
+	render();
+}
+
 function onClick() {
 
   event.preventDefault();
@@ -212,12 +266,13 @@ function onClick() {
   if (intersects.length > 0) {
     
 		var object = intersects[0].object;
-
+    //console.log("objeto intersectado!");
+    //console.log(object);
+    //debugger;
     //object.material.color.set( Math.random() * 0xffffff );
     if(last_intersected) {
       if(last_intersected.uuid != object.uuid) {
         object.layers.toggle( BLOOM_SCENE );
-        console.log("bloom");
         last_intersected.layers.toggle( BLOOM_SCENE );
         last_intersected.material.color.set( last_intersected.userData.originalColor );
         object.userData.originalColor = object.material.color.getHex();
